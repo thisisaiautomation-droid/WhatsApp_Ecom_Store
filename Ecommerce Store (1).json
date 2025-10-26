@@ -1,0 +1,337 @@
+{
+  "name": "Ecommerce Store",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant\nSystem Message for WhatsApp E-Commerce AI AgentYou are \"E-Shopper Assistant,\" a helpful, friendly, and professional A.I. assistant for an online E-commerce shop, communicating solely via WhatsApp.Primary Goal: To assist customers with product inquiries (price, details, stock) and to efficiently process new orders by collecting all necessary information.Persona & Tone:Friendly & Professional (WhatsApp Style): Use a conversational, engaging, and brief tone suitable for WhatsApp chat. Be patient and polite.Product Priority: Always prioritize checking product availability and details before confirming any order.Missing Information: If any crucial information (Item Name, Quantity, Customer Name, Delivery Address, or Email Address) is missing for placing an order, immediately and politely ask the user for only the missing piece(s).Data Sheets & Structure:You have access to two Google Sheets:Sheet 1: Ecommerce Shop (Product Inventory)Purpose: Read-Only for product information lookup.Key Columns: Item Nmaes, Search key, Category, Price, Description, Number of stocks.Sheet 2: Place Order (Order Tracker)Purpose: Write-Only to record new, confirmed customer orders.Key Columns: Order Name, Quantity, Customer Name, Delivery Address, Email Address, Status. (Default status should be set to 'Pending').Tools: You have the following tools available:ProductInformation/Availability (Read-Sheet Tool)Trigger: User asks about product details (e.g., \"What is the price of...\", \"Do you have...\", \"Tell me about...\").Action: Use this tool to search the Ecommerce Shop sheet using the Search key for fuzzy matching.Output Strategy: Provide the requested details (Item Name, Price, Description, and current Stock Level). If stock is 0, clearly state that the item is \"Out of Stock.\"PlacingOrder (Append/Update Order Tool)Trigger: User confirms an order (e.g., \"Yes, I want to buy...\", or provides complete order information).Action: Use this tool to append a new row to the Place Order sheet.Required Data: You MUST collect all six key pieces of data before triggering this tool: Order Name, Quantity, Customer Name, Delivery Address, Email Address, and setting the Status to 'Pending'.Handling Missing Info: If any required data is missing, DO NOT use this tool. Instead, ask the user specifically for the missing detail (e.g., \"Aapka delivery address kya hai?\").Fallback & Failsafe:If a product is requested and not found in the Product Inventory Sheet, respond politely: \"I'm sorry, I couldn't find that item in our current inventory. Can I help you find something else?\"NEVER use the PlacingOrder tool for checking stock or finding prices. It is strictly for final order placement\nand please Send Confirmation Email Tool."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        0
+      ],
+      "id": "2020c4e5-59bf-4b3a-b2da-97f92cd70f5e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        112,
+        192
+      ],
+      "id": "1a473dc6-8fde-4f84-8f0b-6d9298339894",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "w8bJFTDn1tdLFzhZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2e786d04-5ce0-4130-8dbb-a4507bb2f9c9",
+      "name": "WhatsApp Trigger1",
+      "webhookId": "09d84771-6466-4ba4-89ef-742d1b3bae8b",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "CblGf4P9WUR1HMnq",
+          "name": "WhatsApp OAuth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "11Q5NDoq0M6F9az8KHu5J0RkmIVqtp9LgrYbTglKySdg",
+          "mode": "list",
+          "cachedResultName": "Ecommerce Shop",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11Q5NDoq0M6F9az8KHu5J0RkmIVqtp9LgrYbTglKySdg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11Q5NDoq0M6F9az8KHu5J0RkmIVqtp9LgrYbTglKySdg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": " Search key",
+              "lookupValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        336,
+        208
+      ],
+      "id": "e6204c19-6c79-45ac-a226-8406b8d4be37",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iKzSWayypin8M5Hy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "820148024517896",
+        "recipientPhoneNumber": "+923144266253",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        0
+      ],
+      "id": "746b529d-539d-4aa7-a380-b821e01c3aed",
+      "name": "Send message",
+      "webhookId": "e9c18338-6df1-444b-85f8-521ed1529c8b",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "2yilvOGwgwjEwMa4",
+          "name": "WhatsApp account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "Hi Dear customer your order has confirmed it will shipped at your address a soon a possible ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        752,
+        208
+      ],
+      "id": "67103029-8e42-4687-969f-9e7d857cf266",
+      "name": "Send a message in Gmail",
+      "webhookId": "1e060dd2-9f4c-43f5-8640-59ae65ec4394",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9JARxbZhtdEbjcr0",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1A32PM8Y9YVUdNVQNwYR1RrVaG8TxaghH2IDNSHwJJ1I",
+          "mode": "list",
+          "cachedResultName": "Place Order",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1A32PM8Y9YVUdNVQNwYR1RrVaG8TxaghH2IDNSHwJJ1I/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Order Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Order_Name__using_to_match_', ``, 'string') }}",
+            "Quantity": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Quantity', ``, 'string') }}",
+            "Customer Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Customer_Name', ``, 'string') }}",
+            "Delivery Address": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Delivery_Address', ``, 'string') }}",
+            "Email Address": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email_Address', ``, 'string') }}",
+            "Status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Status', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "Order Name"
+          ],
+          "schema": [
+            {
+              "id": "Order Name",
+              "displayName": "Order Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delivery Address",
+              "displayName": "Delivery Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        512,
+        208
+      ],
+      "id": "c0baafec-1e0e-4655-a2ea-3d20e9005252",
+      "name": "Append or update row in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iKzSWayypin8M5Hy",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0ddfe7ae-6952-44d9-ae7b-df17b0242209",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f30cece5de95061e5e241a6029be07b644980a038ef1a26e59db178689fdfdf"
+  },
+  "id": "0xUIueiEMlG4oG7C",
+  "tags": []
+}
